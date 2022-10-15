@@ -6,492 +6,428 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.Media;
+using Spave_SHooter.Class;
+using System.Threading;
 
 namespace Spave_SHooter
 {
     public partial class Form1 : Form
     {
-       
-        SoundPlayer sp = new SoundPlayer(@"C:\Users\Nils\source\repos\cs_programming\Projects_cs\Spave_SHooter\Spave_SHooter\Sounds\laser1.wav");
-        SoundPlayer  endGame = new SoundPlayer(@"C:\Users\Nils\source\repos\cs_programming\Projects_cs\Spave_SHooter\Spave_SHooter\Sounds\Game_End_Sound.wav");
-        SoundPlayer damage = new SoundPlayer(@"C:\Users\Nils\source\repos\cs_programming\Projects_cs\Spave_SHooter\Spave_SHooter\Sounds\Explosion_01.wav");
+
+
         bool newLevel = false;
-        int score = 0;
-        int copyScore = 0;
-        int meteoridspeed = 2;
-        int spaseShipSpeed = 20;
-        int level = 1;
-        int laserDamage = 5;
-        int heart_count = 3;
-        bool gameOver = false;
-        bool protectionActive = false;
-        Random r = new Random();
-
-        public Form1()
-        {
+        SoundPlayer coinCollect = new SoundPlayer(Application.StartupPath + "\\Sounds\\coin.wav");
+        SoundPlayer sp = new SoundPlayer(Application.StartupPath + "\\Sounds\\laser1.wav");
+        SoundPlayer shieldDown = new SoundPlayer(Application.StartupPath + "\\Sounds\\sfx_shieldDown.wav");
+        SoundPlayer shieldUp = new SoundPlayer(Application.StartupPath + "\\Sounds\\sfx_shieldUp.wav");
+        bool goLeft, goRight, goUp, goDown;
+        bool spacePressd;
+        int asteroidCount;
+        int asteroidSpeed = 13;
+        int maxBulletCount = 3;
+        int maxAsteroidCount = 6;
+        int bulletSpeed = 15;
+        int bulletCount;
+        
+        bool doubleShoot;
+        int heartcount = 3;
+        Random coinSpawner = new Random();
+        public Form1(){
             InitializeComponent();
+            Settings.SpaceShipSpeed = 8;
+            Settings.MaxWidth = this.Width - SpaceShip_pictureBox1.Width;
+            Settings.MaxHeight = this.Height - SpaceShip_pictureBox1.Height;
         }
 
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
-        {
-            if(e.KeyCode == Keys.Enter)
-            {
-                laser_timer1.Enabled = true;
-                meteorid_timer1.Start();
-                meteorid_timer2.Start();
-                score_timer1.Start();
-               
-                gameOver = false;
+        private void Form1_KeyUp(object sender, KeyEventArgs e) {
+            if (e.KeyCode == Keys.A){
+                goLeft = false;
             }
-          
-            if(e.KeyCode == Keys.A && gameOver == false)
-
-            {
-
-                if (SpaceShip_pictureBox.Location.X < 0)
-                {
-                    return;
-                }
-                SpaceShip_pictureBox.Left -= spaseShipSpeed;
+            if (e.KeyCode == Keys.D){
+                goRight = false;
             }
-            if (e.KeyCode == Keys.D && gameOver == false)
-            {
-                if (SpaceShip_pictureBox.Location.X > 820)
-                {
-                    return;
-                }
-
-                SpaceShip_pictureBox.Left += spaseShipSpeed;
+            if (e.KeyCode == Keys.W){
+                goUp = false;
             }
-            if (e.KeyCode == Keys.W && gameOver == false)
-            {
-            
-                if (SpaceShip_pictureBox.Location.Y < 0)
-                {
-                    return;
-                }
-                SpaceShip_pictureBox.Top -= spaseShipSpeed;
+            if (e.KeyCode == Keys.S){
+                goDown = false;
             }
-            if (e.KeyCode == Keys.S && gameOver == false)
-            {
-                if (SpaceShip_pictureBox.Location.Y > 720)
-                {
-                    return;
-                }
-                SpaceShip_pictureBox.Top += spaseShipSpeed;
+            if (e.KeyCode == Keys.Space){
+                spacePressd = false;
             }
-            if(e.KeyCode == Keys.Space && this.laser_timer1.Enabled == true)
-            {
-                if(Laser_pictureBox1.Location.Y < 0)
-                {
-                    LaserInvinsible(Laser_pictureBox1);
-                    LaserInvinsible(Laser_pictureBox2);
+
+        }
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e){
+            if (e.KeyCode == Keys.A){
+                goLeft = true;
+            }
+            if (e.KeyCode == Keys.D){
+                goRight = true;
+            }
+            if (e.KeyCode == Keys.W){
+                goUp = true;
+            }
+            if (e.KeyCode == Keys.S){
+                goDown = true;
+            }
+            if (e.KeyCode == Keys.Space){
+                spacePressd = true;
+            }
+            if (e.KeyCode == Keys.Escape){
+                if (start_button1.Visible){
+                    start_button1_Click(sender, e); 
                 }
-                if ( !this.Laser_pictureBox1.Visible)
-                {
-
-                    try { sp.Play(); } catch { }
-                  
-                    this.Laser_pictureBox1.Visible = true;
-                    this.Laser_pictureBox1.Enabled = true;
-                    this.Laser_pictureBox1.Location = new Point(SpaceShip_pictureBox.Location.X + 100 ,
-                                                                SpaceShip_pictureBox.Location.Y + 10);
-                    this.Laser_pictureBox2.Visible = true;
-                    this.Laser_pictureBox2.Enabled = true;
-                    this.Laser_pictureBox2.Location = new Point(SpaceShip_pictureBox.Location.X + 30,
-                                                                SpaceShip_pictureBox.Location.Y + 10);
-
-
+                else{
+                    pause_label1_Click(sender, e);
                 }
-
-          
+              
             }
         }
 
-        void LaserInvinsible(PictureBox p)
-        {
-           p.Visible = false;
-           p.Enabled = false;
-           p.Location = new Point(-100, 2000);
+        private void Form1_Load(object sender, EventArgs e){
+          loadSettings();
         }
-        private void meteorid_timer1_Tick(object sender, EventArgs e)
-        {
-          //Spawn METEORId
-            moveMeteorid(pictureBox2, r.Next(350, 550), r.Next(-200, 0));
-            moveMeteorid(pictureBox3, r.Next(650, 800), r.Next(-200,  0));
-            moveMeteorid(pictureBox1, r.Next(50, 200), r.Next(-200, 0));
-        
-           
+
+        private void game_timer1_Tick(object sender, EventArgs e) {
+            int cc = Settings.CoinCount; 
+            this.coincount_roundLabel1.Text = cc.ToString();
+            int locationX = this.SpaceShip_pictureBox1.Location.X;
+            int locationY = this.SpaceShip_pictureBox1.Location.Y;
+            Check_keyPressd(locationX, locationY);
+            spawnMeteorit();
+            shootBullet();
+
+        }
+        void Check_keyPressd(int x, int y) {
+            if (goLeft) {
+                if (x > 0)
+                    SpaceShip_pictureBox1.Left -= Settings.SpaceShipSpeed; }
+            if (goRight) {
+                if (x < Settings.MaxWidth)
+                    SpaceShip_pictureBox1.Left += Settings.SpaceShipSpeed; }
+            if (goUp) {
+                if (y > 0)
+                    SpaceShip_pictureBox1.Top -= Settings.SpaceShipSpeed; }
+            if (goDown) {
+                if (y < Settings.MaxHeight)
+                    SpaceShip_pictureBox1.Top += Settings.SpaceShipSpeed; }
         }
         
-         void moveMeteorid(PictureBox p, int xLocation,int yLocation)
-        {
-            if (p.Bounds.IntersectsWith(SpaceShip_pictureBox.Bounds) && gameOver == false)
-            {
-                if (protectionActive)
-                {
-                    p.Location = new Point(xLocation, yLocation);
-                    return;
-                }
-              
-                heart_count--;
-                removeExtraLife();
-                SpaceShip_pictureBox.Location = new Point(469, 597);
 
-                if (heart_count > 0){
-                    try { damage.Play(); } catch { }
-                   
-                    protectionActive = true;
-                    wait_timer1.Enabled = true;
-                }
-                if (heart_count == 0)
-                {
-                    try {
-                        endGame.Play();
+        void spawnMeteorit() {
+            Random r = new Random();
+            if (asteroidCount < maxAsteroidCount) {
+                asteroidCount++;
+                //Create-Asteroid-PB----------------------------------------
+                RoundPictureBox met = createRoundGameObject("asteroid",
+                Spave_SHooter.Properties.Resources.meteorBrown_big4,
+                new Size(150, 150),
+                new Point(r.Next(0, this.Width - 110), r.Next(-1000, 0)));
+                //==========================================================
+                this.Controls.Add(met); }
+        }
+
+        private void pause_label1_Click(object sender, EventArgs e) {
+            this.game_timer1.Enabled = false;
+            this.start_button1.Visible = true;
+            this.exit_button1.Visible = true;
+            this.settings_label.Visible = true;
+            this.heart_panel1.Visible = false;
+            this.score_label1.Visible = false;
+            this.coincount_roundLabel1.Visible = false;
+        }
+
+        private void exit_button1_Click(object sender, EventArgs e) {
+            Application.Exit(); 
+        }
+
+        private void start_button1_Click(object sender, EventArgs e) {
+            this.settings_label.Visible = false;
+            this.start_button1.Visible = false;
+            this.exit_button1.Visible = false;
+            this.game_timer1.Enabled = true;
+            this.heart_panel1.Visible = true;
+            this.score_label1.Visible = true;
+            this.coincount_roundLabel1.Visible = true;
+        }
+
+        private void protection_timer1_Tick(object sender, EventArgs e)
+        {
+            this.protection_timer1.Enabled = false;
+        }
+
+        void checkifbulletBounds(PictureBox bullet) {
+
+            foreach (Control p in this.Controls) {
+                if (p is RoundPictureBox) {
+                    if (p.Tag == "asteroid") {
+                        if (bullet.Bounds.IntersectsWith(p.Bounds)) {
+                            crateRandomGameObject(p as RoundPictureBox);
+                            asteroidCount += removeGameObject(p as PictureBox);
+                            bulletCount += removeGameObject(bullet);
+                            Settings.Score += 10;
+                            score_label1.Text = Settings.Score.ToString(); }
                     }
-                    catch { }
+                }
+            }
+        }
 
+        void crateRandomGameObject(RoundPictureBox p){
+            int random = coinSpawner.Next(1, 40);
+            if (random % 4 == 0)
+            {
+                //create-coin-----------------------------------
+                this.Controls.Add(createRoundGameObject("coin", Spave_SHooter.Properties.Resources.star_coin_rotate_1,
+                new Size(75, 75), new Point(p.Location.X, p.Location.Y)));
+                //================================================
+            }
+            else if (random == 1)
+            {
+                this.Controls.Add(createRoundGameObject("heart_item", Spave_SHooter.Properties.Resources.heart_image,
+                    new Size(60, 60), new Point(p.Location.X, p.Location.Y)));
+            }
+            else if (random == 3)
+            {
+                doubleShoot = true;
+            }
+            else if (random == 5)
+            {
+                doubleShoot = false;
+            }
+        }
+        RoundPictureBox createRoundGameObject(string tag, Image img, Size s, Point loc) {
+            RoundPictureBox p = new RoundPictureBox();
+            p.Tag = tag;
+            p.Size = s;
+            p.Image = img;
+            p.SizeMode = PictureBoxSizeMode.Zoom;
+            p.Location = loc;
+            p.BringToFront();
+            return p;
+        }
+        PictureBox createGameObject(string tag, Image img, Size s, Point loc)
+        {
+            PictureBox p = new PictureBox();
+            p.Tag = tag;
+            p.Size = s;
+            p.Image = img;
+            p.SizeMode = PictureBoxSizeMode.Zoom;
+            p.Location = loc;
+            p.BringToFront();
+            return p;
 
+        }
+        private void settings_label_Click(object sender, EventArgs e){
+            Spave_SHooter.Forms.Settings_Form sf = new Forms.Settings_Form();
+            sf.selected_ship_PB.Image = SpaceShip_pictureBox1.Image;
+            sf.selected_laser_pictureBox2.Image = Settings.LaserImage;
+            sf.ShowDialog();
+            if(sf.DialogResult == DialogResult.OK){
+                Settings.LaserImage = sf.selected_laser_pictureBox2.Image;
+                SpaceShip_pictureBox1.Image = sf.selected_ship_PB.Image;
+            }
+        }
 
-                    gameOver = true;
-                    DiableEnableItems(false);
-                    resetAllMetheoridLocation();
-                    this.end_panel1.Visible = true;
+        void shootBullet() {
+            if (spacePressd){
+                //Shoot bullet------------------------
+                if (bulletCount < maxBulletCount){
+                    sp.Play();
+                    bulletCount++;
+                    spacePressd = false;
 
-                    load_Score_timer1.Enabled = true;
-                    this.end_score_label2.Text = copyScore.ToString();
-                    skip_label1.Visible = true;
-                    heart_panel1.Visible = false;
-                    if (score > Spave_SHooter.Properties.Settings.Default.highScore)
-                    {
-                        Spave_SHooter.Properties.Settings.Default.highScore = score;
-                        new_high_score_label1.Visible = true;
-                        Spave_SHooter.Properties.Settings.Default.Save();
+                    if (!doubleShoot){
+                        //createObject-----------------------
+                        PictureBox bull = createGameObject("bullet", Settings.LaserImage,
+                        new Size(40, 100),
+                        new Point(SpaceShip_pictureBox1.Location.X + (SpaceShip_pictureBox1.Width / 2),
+                        SpaceShip_pictureBox1.Top));
+                        this.Controls.Add(bull);
+                 }
+                    if (doubleShoot){
+                        bulletCount++;
+                        doubleShooting();
                     }
-                }
-               
-               
-                copyScore = 0;
-
-                }
-                if (p.Location.Y > this.Height || !p.Visible)
-                {
-                    p.Visible = true;
-                    p.Location = new Point(xLocation, yLocation);
-
-                }
-                if (this.Laser_pictureBox1.Bounds.IntersectsWith(p.Bounds) || this.Laser_pictureBox2.Bounds.IntersectsWith(p.Bounds))
-                {
-                    LaserInvinsible(Laser_pictureBox1);
-                    LaserInvinsible(Laser_pictureBox2);
-                protectionActive = false;
-                if (protectionActive)
-                {
-                    wait_timer1.Enabled = false;
-                }
-                    p.Location = new Point(xLocation, yLocation);
-                    score += laserDamage;
-                }
-            
-            p.Top += meteoridspeed;
-        }
-
-        void removeExtraLife()
-        {
-            if(heart_count == 2)
-            {
-                this.heart_pictureBox3.Visible = false;
+                    }
+                    //====================================
             }
-            if (heart_count == 1)
-            {
-                this.heart_pictureBox2.Visible = false;
-            }
-            if (heart_count == 0)
-            {
-                this.heart_pictureBox1.Visible = false;
-            }
+            findGameObject();
         }
-        void visibleLifes()
-        {
-            heart_pictureBox1.Visible = true;
-            heart_pictureBox2.Visible = true;
-            heart_pictureBox3.Visible = true;
+        void doubleShooting(){
+            //Create-First-Bullet-------------------------
+            PictureBox bull1 = createGameObject("bullet",Settings.LaserImage,
+            new Size(40, 100),
+            new Point(SpaceShip_pictureBox1.Location.X,
+            SpaceShip_pictureBox1.Top));
+            //=============================================
+            //Create-Second-Bullet-------------------------
+            PictureBox bull2 = createGameObject("bullet", Settings.LaserImage,
+            new Size(40, 100),
+            new Point(SpaceShip_pictureBox1.Location.X + SpaceShip_pictureBox1.Width,
+            SpaceShip_pictureBox1.Top));
+            //=============================================
+
+            this.Controls.Add(bull1);
+            this.Controls.Add(bull2);
         }
-        private void Form1_Load(object sender, EventArgs e)
-        {
-           
+        int removeGameObject(PictureBox met) {
+            this.Controls.Remove(met);
+            return -1;
         }
-
-        private void laser_timer1_Tick(object sender, EventArgs e)
+       
+        private void coin_rotate_timer1_Tick(object sender, EventArgs e)
         {
-            this.Laser_pictureBox2.Top -= 25;
-            this.Laser_pictureBox1.Top -= 25;
-      
-        }
-
-        private void score_timer1_Tick(object sender, EventArgs e)
-        {
-            this.scorelabel1.Text = score.ToString();
-
-
-            checkScore();
-           
             
         }
 
+        void findGameObject(){
+            foreach (Control p in this.Controls){
+                if (p is RoundPictureBox || p is PictureBox){
+                    if (p.Tag == "coin"){
+                       
+                        coinFound(p as RoundPictureBox);
+                    }
+                    if (p.Tag == "heart_item"){
+                        
+                            heart_itemFound(p as RoundPictureBox);
+                    }
 
-        void checkScore() {
+                    if (p.Tag == "bullet")
+                            bulletFound(p as PictureBox);
+                        if (p.Tag == "asteroid")
+                            asteroidFound(p as PictureBox);}
+        }  
 
-            int copylevel = level;
-
-            checkNextLevel();
-            //Check lEVEL
-          
-            if (copylevel != level)
-            {
-              
-                Next_Level();
-            }
-            this.level_label1.Text = "Level " + level;
-
-        }
-
-
-        void checkNextLevel()
-        {
-
-            if (score >= 50)
-            {
-                level = 2;
-                meteoridspeed = 2;
-
-            }
-
-
-            if (score >= 100)
-            {
-                level = 3;
-                meteorid_timer2.Enabled = true;
-            }
-
-
-            if (score >= 150)
-            {
-                level = 4;
-                meteoridspeed = 3;
-            }
-
-
-            if (score >= 200)
-            {
-                level = 5;
-                meteorid_timer3.Enabled = true;
-            }
-
-            if (score >= 250)
-            {
-                level = 6;
-                meteoridspeed = 4;
-            }
-
-
-            if (score >= 300)
-            {
-                level = 7;
-                //new Meteorid;
-            }
-            if (score >= 350)
-            {
-                level = 8;
-                //new Meteorid;
-                meteoridspeed = 5;
-            }
-            if (score >= 400)
-            {
-                level = 9;
-                //new Meteorid;
-            }
-            if (score >= 450)
-            {
-                level = 10;
-                meteoridspeed = 6;
-
-            }
-        }
-            private void meteorid_timer2_Tick(object sender, EventArgs e)
-        {
-            moveMeteorid(pictureBox4, r.Next(450, 600), r.Next(-700, -500));
-            moveMeteorid(pictureBox5, r.Next(650, 800), r.Next(-700, -500));
-            moveMeteorid(pictureBox6,r.Next(150, 250), r.Next(-700, -500));
-         
-            if(level >= 9)
-            {
-              
-                    moveMeteorid(pictureBox13, r.Next(50, 350), r.Next(-4000, -2000));
-                    moveMeteorid(pictureBox14, r.Next(400, 600), r.Next(-4000, -2000));
-                    moveMeteorid(pictureBox15, r.Next(600, 800), r.Next(-4000, 2000));
+         void coinFound(RoundPictureBox coin){
                 
+                if (this.SpaceShip_pictureBox1.Bounds.IntersectsWith(coin.Bounds)){
+                    coinCollect.Play();
+                    this.Controls.Remove(coin);
+                    Settings.CoinCount++;
+                }
+        }
+           
+
+            void heart_itemFound(RoundPictureBox heart){
+                if (this.SpaceShip_pictureBox1.Bounds.IntersectsWith(heart.Bounds))
+                {
+                    shieldUp.Play();
+                    if (heartcount < 3)
+                {
+                    
+                    VisibleHearts();
+                    heartcount = 3;
+                }
+                    this.Controls.Remove(heart);
+                
+                }
             }
+
+                void bulletFound(PictureBox p){
+                    p.Location = new Point(p.Location.X, p.Location.Y - bulletSpeed);
+                    checkifbulletBounds(p);
+                    if (p.Location.Y < 0) {
+                        bulletCount--;
+                        this.Controls.Remove(p); }
+                }
+
+                void removeItems(){
+                    foreach (Control p in this.Controls){
+                    if (p is RoundPictureBox)
+                    {
+                        if (p.Tag == "coin" || p.Tag == "heart_item")
+                        {
+                            this.Controls.Remove(p);
+ 
+                        }
+
+                    }
+                }
+                    //Stop-Moving----------------------
+                    goLeft = false;
+                    goRight = false;
+                    goUp = false;
+                    goDown = false;
+                    //=================================
+                }
+
+                void asteroidFound(PictureBox p){
+                    p.Location = new Point(p.Location.X, p.Location.Y + asteroidSpeed);
+                    shipBoundsinAsteroid(p);
+                    if (p.Location.Y > this.Height){
+                        asteroidCount += removeGameObject(p);}
+                }
+                void shipBoundsinAsteroid(PictureBox asteroid) {
+                    int score;
+                if (protection_timer1.Enabled){
+                    asteroidCount += removeGameObject(asteroid);
+                    return;}
+
+                if (asteroid.Bounds.IntersectsWith(SpaceShip_pictureBox1.Bounds)){
+                    //Remove-live-----------------------
+                    if (heartcount > 0){
+                        shieldDown.Play();
+                        this.Controls.Remove(asteroid);
+                        asteroidCount--;
+                        removeHearts();
+                        heartcount--;}
+                    //==================================
+
+                    //Check-if-Game-finished------------
+                    if (heartcount == 0){
+                        VisibleHearts();
+                        Int32.TryParse(this.score_label1.Text, out score);
+                        Settings.Score = score;
+                        this.game_timer1.Enabled = false;
+                        heartcount = 3;
+                        showScoreForm();
+                        game_timer1.Enabled = true;}}
+                //==================================
+             }
+             void VisibleHearts(){
+                heartcount++;
+                this.heart_pictureBox1.Visible = true;
+                this.heart_pictureBox2.Visible = true;
+                this.heart_pictureBox3.Visible = true;}
+
+                void showScoreForm(){
+                    Spave_SHooter.Forms.score_form sf = new Forms.score_form();
+                    sf.score_label1.Text = "0";
+                    sf.ShowDialog();
+                    checkDialogResult(sf.DialogResult);}
+
+                void checkDialogResult(DialogResult d){
+                    if (d == DialogResult.OK){
+                        //Reset-Score----------------------
+                        Settings.Score = 0;
+                        score_label1.Text = 0.ToString();
+                        //=================================
+                        removeItems();
+                        // New Spaceship Location
+                        this.SpaceShip_pictureBox1.Location = new Point(this.Width / 2,
+                        this.Height - 200);
+                        //=====================
+                        this.protection_timer1.Enabled = true;
+                        this.game_timer1.Enabled = true;
+                        doubleShoot = false;
+                }
+                    if (d == DialogResult.Cancel){
+                        this.Close();}}}
+
+        void loadSettings(){
+            Settings.LaserImage = Spave_SHooter.Properties.Resources.laserBlue16;
         }
+        void removeHearts(){
+            if (heart_pictureBox1.Visible){
+                heart_pictureBox1.Visible = false;return;}
 
-     
-     
-    
+            if (heart_pictureBox2.Visible){
+                heart_pictureBox2.Visible = false; return;}
 
-        private void pictureBox1_Click(object sender, EventArgs e)
-        {
+            if (heart_pictureBox3.Visible){
+                heart_pictureBox3.Visible = false; return;}}
 
-        }
-
-      
-
-      
-
-        void resetAllMetheoridLocation()
-        {
-            pictureBox1.Location = new Point(r.Next(50, 200), r.Next(-200, 0));
-            pictureBox2.Location = new Point(r.Next(350, 550), r.Next(-200, 0));
-            pictureBox3.Location = new Point(r.Next(650, 800), r.Next(-200, 0));
-           
-            pictureBox4.Location = new Point(r.Next(450, 600), r.Next(-700, -500));
-            pictureBox5.Location = new Point(r.Next(650, 800), r.Next(-700, -500));
-            pictureBox6.Location = new Point(r.Next(150, 250), r.Next(-700, -500));
-
-
-            pictureBox7.Location = new Point (r.Next(100, 300), r.Next(-1500, -800));
-            pictureBox8.Location = new Point(r.Next(400, 600), r.Next(-1500, -800));
-            pictureBox9.Location = new Point(r.Next(600, 800), r.Next(-1500, -800));
-
-            pictureBox10.Location = new Point(r.Next(50, 350), r.Next(-4000, -2000));
-            pictureBox11.Location = new Point (r.Next(400, 600), r.Next(-4000, -2000));
-            pictureBox12.Location = new Point (r.Next(600, 800), r.Next(-4000, 2000));
-
-            pictureBox13.Location = new Point(r.Next(50, 350), r.Next(-4000, -2000));
-            pictureBox14.Location = new Point(r.Next(400, 600), r.Next(-4000, -2000));
-            pictureBox15.Location = new Point(r.Next(600, 800), r.Next(-4000, 2000));
-
-           
-        }
-
-    
-
-     
-
-        private void SpaceShip_pictureBox_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void start_label1_Click(object sender, EventArgs e)
-        {
-
-            Form1 form1 = new Form1();
-           
-            meteoridspeed = 2;
-            level = 1;
-            DiableEnableItems(true);
-            heart_panel1.Visible = true;
-           
-            this.exit_label1.Visible = false;
-            this.start_label1.Visible = false;
-           
-           
-            form1.Focus();
-            gameOver = false;
-        }
-
-
-        void DiableEnableItems(bool dOrE)
-        {
-            laser_timer1.Enabled = dOrE;
-            meteorid_timer1.Enabled = dOrE;
-            if (level >= 3)
-            {
-                meteorid_timer2.Enabled = dOrE;
-            }
-            if(level >= 5)
-            {
-                meteorid_timer3.Enabled = dOrE;
-            }
-            score_timer1.Enabled = dOrE;
-            SpaceShip_pictureBox.Enabled = dOrE;
-        }
-        private void exit_label1_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
-        }
-
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void ok_button_Click(object sender, EventArgs e)
-        {
-            heart_count = 3;
-            visibleLifes();
-             
-            score = 0;
-            endGame.Stop();
-            this.SpaceShip_pictureBox.Image = Spave_SHooter.Properties.Resources.spaceShipbest;
-          load_Score_timer1.Enabled = false;
-            this.end_panel1.Visible = false;
-            this.exit_label1.Visible = true;
-            this.start_label1.Visible = true;
-            this.new_high_score_label1.Visible = false;
-        }
-
-        void Next_Level(){
-           
-            this.level_label1.Visible = true;
-         
-            this.level_label1.Location = new Point(430, 430);
-            wait_timer1.Enabled = true;
-        }
-
-        private void load_Score_timer1_Tick(object sender, EventArgs e)
-        {
-           
-            if (copyScore <= score) {
-
-               
-                this.end_score_label2.Text = copyScore.ToString();
-
-                copyScore++;
-            }
-            else
-            {
-                skip_label1.Visible = false;
-                load_Score_timer1.Enabled = false;
-            }
-        
-        }
-
-        private void wait_timer1_Tick(object sender, EventArgs e)
-        {
-            this.level_label1.Visible = false;
-            protectionActive = false;
-            wait_timer1.Enabled = false;
-        }
-
-        private void meteorid_timer3_Tick(object sender, EventArgs e)
-        {
-            moveMeteorid(pictureBox7, r.Next(100, 300), r.Next(-1500, -800));
-            moveMeteorid(pictureBox8, r.Next(400, 600), r.Next(-1500, -800));
-            moveMeteorid(pictureBox9, r.Next(600, 800), r.Next(-1500, -800));
-            if(level >= 7)
-            {
-                moveMeteorid(pictureBox10, r.Next(50, 350), r.Next(-4000, -2000));
-                moveMeteorid(pictureBox11, r.Next(400, 600), r.Next(-4000, -2000));
-                moveMeteorid(pictureBox12, r.Next(600, 800), r.Next(-4000, 2000));
-            }
-        }
-
-        private void skip_label1_Click(object sender, EventArgs e)
-        {
-           
-            this.load_Score_timer1.Enabled = false;
-            this.end_score_label2.Text = score.ToString();
-        }
     }
-}
+
+    } 

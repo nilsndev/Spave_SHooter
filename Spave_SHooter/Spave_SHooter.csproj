@@ -8,9 +8,11 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Spave_SHooter</RootNamespace>
     <AssemblyName>Spave_SHooter</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile />
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -23,7 +25,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -62,25 +63,50 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Class\RoundLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Class\RoundPictureBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Class\Settings.cs" />
     <Compile Include="Forms\Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\MdiContainer.cs">
+    <Compile Include="Forms\LoadingScreen.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\MdiContainer.Designer.cs">
-      <DependentUpon>MdiContainer.cs</DependentUpon>
+    <Compile Include="Forms\LoadingScreen.Designer.cs">
+      <DependentUpon>LoadingScreen.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\score_form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\score_form.Designer.cs">
+      <DependentUpon>score_form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Settings_Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Settings_Form.Designer.cs">
+      <DependentUpon>Settings_Form.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Forms\Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\MdiContainer.resx">
-      <DependentUpon>MdiContainer.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\LoadingScreen.resx">
+      <DependentUpon>LoadingScreen.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\score_form.resx">
+      <DependentUpon>score_form.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Settings_Form.resx">
+      <DependentUpon>Settings_Form.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -127,11 +153,23 @@
     <None Include="Resources\throphy.png" />
     <None Include="Resources\better Throphy.png" />
     <None Include="Resources\heart_image.png" />
-    <Content Include="Sounds\Collect_Point_00.wav" />
-    <Content Include="Sounds\Explosion_01.wav" />
-    <Content Include="Sounds\Game_End_Sound.wav" />
-    <Content Include="Sounds\laser1.wav" />
-    <Content Include="Sounds\Shoot_00.wav" />
+    <None Include="Resources\asteroid.png" />
+    <None Include="Resources\space_back.jpg" />
+    <None Include="Resources\ufo_image.png" />
+    <None Include="Resources\laserBlue16.png" />
+    <None Include="Resources\meteorBrown_big4.png" />
+    <None Include="Resources\playerShip2_red.png" />
+    <None Include="Resources\Coin.png" />
+    <None Include="Resources\sp_logo.png" />
+    <None Include="Resources\playerShip3_blue.png" />
+    <None Include="Resources\playerShip3_green.png" />
+    <None Include="Resources\playerShip1_red.png" />
+    <None Include="Resources\playerShip2_green.png" />
+    <None Include="Resources\Settings_Icon.png" />
+    <None Include="Resources\star coin rotate 1.png" />
+    <None Include="Resources\star coin rotate 4.png" />
+    <None Include="Resources\laserGreen10.png" />
+    <None Include="Resources\laserRed16.png" />
     <Content Include="space_shooter_icon.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -153,5 +191,6 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
